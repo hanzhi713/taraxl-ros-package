@@ -8,7 +8,7 @@ add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED)
 
-find_package(OpenCV 3.1.0 EXACT REQUIRED HINTS /usr/local/taraxl-opencv)
+find_package(OpenCV 3.4.2 EXACT REQUIRED HINTS /usr/local/taraxl-opencv)
 
 find_package(Boost REQUIRED)
 find_package(cv_bridge REQUIRED)
