@@ -50,6 +50,10 @@ class taraxlros
 		image_transport::Publisher pubRight;
 		ros::Publisher pubDisparity;
 		image_transport::Publisher pubDepth;
+
+		//add a cameraInfo publisher
+		ros::Publisher pubCamInfoLeft;
+		ros::Publisher pubCamInfoRight;
 		
 	public:
 	
@@ -59,6 +63,8 @@ class taraxlros
 		void rosPublish ();
 		void imagePublisher(sensor_msgs::ImagePtr &imageMsg, Mat image);
 		void disparityPublisher(stereo_msgs::DisparityImagePtr &dispMsg, Mat dispImage);
+		//add a publisher to publish camera info
+		void cameraInfoPublisher(sensor_msgs::CameraInfo camera_info);
 		
 
 };

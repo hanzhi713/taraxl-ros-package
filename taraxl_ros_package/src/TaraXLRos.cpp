@@ -55,12 +55,18 @@ void taraxlros::rosPublish ()
 	sensor_msgs::ImagePtr depthMsg;
 	stereo_msgs::DisparityImagePtr disparityMsg = boost::make_shared<stereo_msgs::DisparityImage> ();
 	
+	//added cameraInfo msg
+	sensor_msgs::CameraInfoPtr leftCam;
+	sensor_msgs::CameraInfoPtr rightCam;
 
 	//publishers-advertise to topics
 	pubLeft = itTaraXL.advertise ("left/image_rect", 1);
 	pubRight = itTaraXL.advertise ("right/image_rect", 1);
 	pubDisparity = nodeHandle.advertise<stereo_msgs::DisparityImage> ("stereo/disparity/image", 1);
 	pubDepth = itTaraXL.advertise ("depth/image", 1);
+
+	pubCamInfoLeft = itTaraXL.advertise("/taraxl/left/camera_info", 1);
+	pubCamInfoRight = itTaraXL.advertise("/taraxl/left/camera_info", 1);
 
 
 	//Dynamic Reconfiguration
@@ -101,6 +107,10 @@ void taraxlros::rosPublish ()
 			imagePublisher (depthMsg, depthMap);
 			pubDepth.publish (depthMsg); 
 
+			cameraInfoLeftPublisher(leftCam);
+			cameraInfoRightPublisher(rightCam);
+
+
 		}
 
 		//Obtain and publish disparity image if subscribed
@@ -119,6 +129,8 @@ void taraxlros::rosPublish ()
 			disparityPublisher(disparityMsg, grayDisp);
 			pubDisparity.publish (disparityMsg);  
 
+			cameraInfoLeftPublisher(leftCam);
+			cameraInfoRightPublisher(rightCam);
 		}
 
 		//Obtain and publish depth image if subscribed
@@ -138,6 +150,10 @@ void taraxlros::rosPublish ()
 			depthMap.convertTo (depthMap, CV_8UC1);
 			imagePublisher (depthMsg, depthMap);
 			pubDepth.publish (depthMsg);  
+
+			cameraInfoLeftPublisher(leftCam);
+			cameraInfoRightPublisher(rightCam);
+
 			
 		}
 		
@@ -227,7 +243,85 @@ void taraxlros::disparityPublisher(stereo_msgs::DisparityImagePtr &dispMsg, Mat 
 
 }	
 
+void taraxlros::cameraInfoLeftPublisher(sensor_msgs::CameraInfoPtr &ci){
+	ci->width = 752;
+	ci->height = 480;
+	float k_temp[] = { (float)716.23767806883029, 0., (float)380.77949374262056, 0.,
+       (float)716.23767806883029, (float)217.86685878818076, 0., 0., 1. };
+	
+	for(int i = 0; i < 9; i ++){
+		ci->K[i] = k_temp[i];
+	}
 
+	float d_temp[] = { (float)0.075142546188962184e-002, (float)-0.093787546047981382,
+       (float)0.0016692040534575499, (float)-0.00040889004262752079};
+
+	ci->D = new float(4);
+
+    for(int i = 0; i < 4; i++){
+		ci->D[i] = d_temp[i];
+	}
+	
+	float r_temp[] = {(float)0.99863313595266778, (float)-0.0036214326873450909,
+       (float)-0.052141586115417193, (float)0.0036833309798456879,
+       (float)0.99999262128647204, (float)0.0010910753884294238,
+       (float)0.052137250121514329, (float)-0.0012816387561852772,
+       (float)0.99863910626004693};
+
+	for(int i = 0; i < 9; i ++){
+		ci->R[i] = r_temp[i];
+	}
+
+    float p_temp[] = { (float)765.60556152317668, 0., (float)425.82975387573242, 0., 0.,
+       (float)765.60556152317668, (float)222.25554084777832, 0., 0., 0., 1.,
+       0. };
+    
+	for(int i = 0; i < 12; i ++){
+		ci->P[i] = p_temp[i];
+	}
+
+    ci->distortion_model = "equidistant";
+}
+
+void taraxlros::cameraInfoRightPublisher(sensor_msgs::CameraInfoPtr &ci){
+	ci->width = 752;
+	ci->height = 480;
+	float k_temp[] = { (float)716.23767806883029, 0., (float)379.52224231819093, 0.,
+       (float)716.23767806883029, (float)226.65882878276798, 0., 0., 1. };
+	
+	for(int i = 0; i < 9; i ++){
+		ci->K[i] = k_temp[i];
+	}
+
+	float d_temp[] = {(float)0.070940303672828275, (float)-0.083481074716348150,
+       (float)-0.0030675339642308669, (float)1.0042332230591974};
+
+	ci->D = new float(4);
+
+    for(int i = 0; i < 4; i++){
+		ci->D[i] = d_temp[i];
+	}
+	
+	float r_temp[] = { (float)0.99884162841721502, (float)-0.0053589610059405256,
+       (float)-0.047819273078780991, (float)0.0053129464379608748,
+       (float)0.99998529289134919, (float)-0.0010893122370687993,
+       (float)0.047824407377337952, (float)0.00083398917215879236,
+       (float)0.99885541021764856 };
+
+	for(int i = 0; i < 9; i ++){
+		ci->R[i] = r_temp[i];
+	}
+
+    float p_temp[] = { (float)765.60556152317668, 0., (float)425.82975387573242,
+       (float)-46009.434918815954, 0., (float)765.60556152317668,
+       (float)222.25554084777832, 0., 0., 0., 1., 0. };
+    
+	for(int i = 0; i < 12; i ++){
+		ci->P[i] = p_temp[i];
+	}
+
+    ci->distortion_model = "equidistant";
+}
 
 
 void taraxlros::dynamicReconfCallback (taraxl_ros_package::taraxlrosConfig &config, uint32_t level)
