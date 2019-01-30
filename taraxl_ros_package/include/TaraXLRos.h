@@ -64,7 +64,8 @@ class taraxlros
 		void imagePublisher(sensor_msgs::ImagePtr &imageMsg, Mat image);
 		void disparityPublisher(stereo_msgs::DisparityImagePtr &dispMsg, Mat dispImage);
 		//add a publisher to publish camera info
-		void cameraInfoPublisher(sensor_msgs::CameraInfo camera_info);
+		void cameraInfoLeftPublisher(sensor_msgs::CameraInfoPtr &camera_info);
+		void cameraInfoRightPublisher(sensor_msgs::CameraInfoPtr &camera_info);
 		
 
 };

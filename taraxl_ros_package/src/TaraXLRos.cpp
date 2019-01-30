@@ -56,8 +56,8 @@ void taraxlros::rosPublish ()
 	stereo_msgs::DisparityImagePtr disparityMsg = boost::make_shared<stereo_msgs::DisparityImage> ();
 	
 	//added cameraInfo msg
-	sensor_msgs::CameraInfoPtr leftCam;
-	sensor_msgs::CameraInfoPtr rightCam;
+	sensor_msgs::CameraInfoPtr leftCam = boost::make_shared<sensor_msgs::CameraInfo> ();
+	sensor_msgs::CameraInfoPtr rightCam = boost::make_shared<sensor_msgs::CameraInfo> ();
 
 	//publishers-advertise to topics
 	pubLeft = itTaraXL.advertise ("left/image_rect", 1);
@@ -65,8 +65,8 @@ void taraxlros::rosPublish ()
 	pubDisparity = nodeHandle.advertise<stereo_msgs::DisparityImage> ("stereo/disparity/image", 1);
 	pubDepth = itTaraXL.advertise ("depth/image", 1);
 
-	pubCamInfoLeft = itTaraXL.advertise("/taraxl/left/camera_info", 1);
-	pubCamInfoRight = itTaraXL.advertise("/taraxl/left/camera_info", 1);
+	pubCamInfoLeft = nodeHandle.advertise<sensor_msgs::CameraInfo>("/taraxl/left/camera_info", 1);
+	pubCamInfoRight = nodeHandle.advertise<sensor_msgs::CameraInfo>("/taraxl/right/camera_info", 1);
 
 
 	//Dynamic Reconfiguration
@@ -75,7 +75,6 @@ void taraxlros::rosPublish ()
     	settings = boost::bind (&taraxlros::dynamicReconfCallback, this, _1, _2);
    	server.setCallback (settings);
 	
-
 	while (ros::ok ())
 	{
 
@@ -84,6 +83,7 @@ void taraxlros::rosPublish ()
 		int depthImgSuber = pubDepth.getNumSubscribers ();
 		int leftImgSuber = pubLeft.getNumSubscribers ();
 		int rightImgSuber = pubRight.getNumSubscribers ();
+
 
 		//Obtain and publish disparity and depth image if both are subscribed
 		if ( dispImgSuber >0 && depthImgSuber > 0 )
@@ -107,10 +107,6 @@ void taraxlros::rosPublish ()
 			imagePublisher (depthMsg, depthMap);
 			pubDepth.publish (depthMsg); 
 
-			cameraInfoLeftPublisher(leftCam);
-			cameraInfoRightPublisher(rightCam);
-
-
 		}
 
 		//Obtain and publish disparity image if subscribed
@@ -128,9 +124,6 @@ void taraxlros::rosPublish ()
 			//Publish disparity image
 			disparityPublisher(disparityMsg, grayDisp);
 			pubDisparity.publish (disparityMsg);  
-
-			cameraInfoLeftPublisher(leftCam);
-			cameraInfoRightPublisher(rightCam);
 		}
 
 		//Obtain and publish depth image if subscribed
@@ -150,10 +143,6 @@ void taraxlros::rosPublish ()
 			depthMap.convertTo (depthMap, CV_8UC1);
 			imagePublisher (depthMsg, depthMap);
 			pubDepth.publish (depthMsg);  
-
-			cameraInfoLeftPublisher(leftCam);
-			cameraInfoRightPublisher(rightCam);
-
 			
 		}
 		
@@ -173,7 +162,12 @@ void taraxlros::rosPublish ()
 			imagePublisher (leftMsg,left);
 			imagePublisher (rightMsg,right);
 			pubLeft.publish (leftMsg);    
-			pubRight.publish (rightMsg); 
+			pubRight.publish (rightMsg);
+			
+			cameraInfoLeftPublisher(leftCam);
+		    pubCamInfoLeft.publish(leftCam);
+		    cameraInfoRightPublisher(rightCam);
+		    pubCamInfoRight.publish(rightCam);
 			
 		}
 
@@ -253,13 +247,12 @@ void taraxlros::cameraInfoLeftPublisher(sensor_msgs::CameraInfoPtr &ci){
 		ci->K[i] = k_temp[i];
 	}
 
-	float d_temp[] = { (float)0.075142546188962184e-002, (float)-0.093787546047981382,
+	float d_temp[] = { (float)0.075142546188962184, (float)-0.093787546047981382,
        (float)0.0016692040534575499, (float)-0.00040889004262752079};
 
-	ci->D = new float(4);
-
+	
     for(int i = 0; i < 4; i++){
-		ci->D[i] = d_temp[i];
+		ci->D.push_back(d_temp[i]);
 	}
 	
 	float r_temp[] = {(float)0.99863313595266778, (float)-0.0036214326873450909,
@@ -296,10 +289,10 @@ void taraxlros::cameraInfoRightPublisher(sensor_msgs::CameraInfoPtr &ci){
 	float d_temp[] = {(float)0.070940303672828275, (float)-0.083481074716348150,
        (float)-0.0030675339642308669, (float)1.0042332230591974};
 
-	ci->D = new float(4);
+	//ci->D = new float(4);
 
     for(int i = 0; i < 4; i++){
-		ci->D[i] = d_temp[i];
+		ci->D.push_back(d_temp[i]);
 	}
 	
 	float r_temp[] = { (float)0.99884162841721502, (float)-0.0053589610059405256,
