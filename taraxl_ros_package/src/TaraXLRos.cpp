@@ -154,6 +154,12 @@ void taraxlros::rosPublish()
 			//Publish left and right image
 			imagePublisher(leftMsg, left);
 			imagePublisher(rightMsg, right);
+			
+			auto timeNow = ros::Time::now();
+			leftMsg->header.stamp = timeNow;
+			rightMsg->header.stamp = timeNow;
+			leftCam->header.stamp = timeNow;
+			rightCam->header.stamp = timeNow;
 
 			// synchronized camera frame and camera info
 			pubLeft.publish(leftMsg, leftCam);
@@ -177,7 +183,7 @@ void taraxlros::imagePublisher(sensor_msgs::ImagePtr &imageMsg, Mat image)
 		exit(0);
 	}
 
-	imageMsg->header.stamp = ros::Time::now();
+	// imageMsg->header.stamp = ros::Time::now();
 	imageMsg->header.frame_id = "taraxl";
 	imageMsg->is_bigendian = !(*(char *)&num == 1);
 }
@@ -260,6 +266,7 @@ void taraxlros::cameraInfoLeftPublisher(sensor_msgs::CameraInfoPtr &ci)
 	}
 
 	ci->distortion_model = "equidistant";
+	ci->header.frame_id = "taraxl";
 }
 
 void taraxlros::cameraInfoRightPublisher(sensor_msgs::CameraInfoPtr &ci)
@@ -305,6 +312,7 @@ void taraxlros::cameraInfoRightPublisher(sensor_msgs::CameraInfoPtr &ci)
 	}
 
 	ci->distortion_model = "equidistant";
+	ci->header.frame_id = "taraxl";
 }
 
 void taraxlros::dynamicReconfCallback(taraxl_ros_package::taraxlrosConfig &config, uint32_t level)
